@@ -2,7 +2,7 @@
 Import-Module ActiveDirectory
 
 #Add new OU to the AD
-New-ADOrganizationalUnit -Name "XXX"
+New-ADOrganizationalUnit -Name "TestOU"
 
 $Users = Import-Csv C:\Users\Administrator.ADATUM\Documents\Users.csv
 
