@@ -1,0 +1,20 @@
+
+# Remove Files older that 60 days from downloads folder
+Get-ChildItem -Path "C:\Users\Administrator.ADATUM\Downloads" -Recurse | Where-Object {($_.LastWriteTime -lt (Get-Date).AddDays(-60))} | Remove-Item 
+
+# List Files with .jpg from the downloads folder
+Get-ChildItem -Path "C:\Users\Administrator.ADATUM\Downloads" *.jpg -Recurse 
+
+# Both commands remove items with the specified file types from the downloads folder
+Get-ChildItem -Path "C:\Users\Administrator.ADATUM\Downloads"  -Recurse -Force -Include *.png, *.jpg, *.txt | Remove-Item
+ 
+Get-ChildItem -Path "C:\Users\Administrator.ADATUM\Downloads" -Include *.png, *.jpg, *.txt -Recurse | Remove-Item 
+
+# Remove all Files and Folders from the downloads folder
+Get-ChildItem -Path "C:\Users\Administrator.ADATUM\Downloads" -Recurse | ForEach {Remove-Item $_.FullName -Force -Recurse}
+
+
+ 
+
+
+
