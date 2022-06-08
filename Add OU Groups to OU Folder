@@ -1,0 +1,17 @@
+
+$groups = Import-Csv -Path C:\Users\Administrator.ADATUM\Documents\NewGroups.csv
+
+foreach ($group in $groups)
+{
+    $groupprops = @{
+        
+            Name = $group.name
+            Path = $group.path
+            GroupScope = $group.scope
+            GroupCategory = $group.category
+            Description = $group.description
+            }
+
+    New-ADGroup @groupprops
+
+}
