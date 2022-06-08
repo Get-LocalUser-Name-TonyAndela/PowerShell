@@ -1,0 +1,60 @@
+
+# Protect AD OU's and Objects From Accidental Deletion - Liam Sullivan
+# Written:  18/06/2019    Last Updated:  18/06/2019 
+# Purpose:  Toggle the "Protect Object From Accidental Deletion" attribute on AD OU's and Objects within. 
+ 
+# Function to check for and enable PS modules.
+Function Get-MyModule {  
+    Param([string]$Name)  
+    If(-not(Get-Module -Name $Name)) {  
+        If(Get-Module -ListAvailable | Where-Object { $_.Name -eq $Name }) {  
+            Import-Module -Name $Name  
+        $True  
+        } # End if module available then import  
+        Else {$False} # Module not available  
+    } # End if not module  
+    Else {$True} # Module already loaded  
+} # End function Get-MyModule  
+ 
+# Use Get-MyModule function in order to import the ActiveDirectory module. 
+If (!(Get-MyModule -Name "ActiveDirectory")) {Write-Host "The ActiveDirectory module is not available on this computer." -foregroundcolor red;Exit} 
+ 
+# Clear the host 
+Clear-Host 
+ 
+# Prompt the host for the DN of the OU to be the search base.  Make sure the DN is valid if Get-ADObject gives an error. 
+$SearchBase = Read-Host "Please type the distinguished name of the OU you'd like to use as the search base, for example: ou=test,dc=test,dc=com" 
+Try {Get-ADObject -Identity $SearchBase -ErrorAction Stop | Out-Null} 
+Catch {Write-Host "The path was not found.  Please check your distinguished name and run the script again." -foregroundcolor red;Exit} 
+ 
+# Setup the menu options so a choice is presented to the host. 
+$Title = "Toggle the `"Protect Object From Accidental Deletion`" setting on AD OUs and objects " 
+$Message = "Would you like to protect or unprotect $SearchBase and all objects within it?" 
+$Protect = New-Object System.Management.Automation.Host.ChoiceDescription "&Protect", ` 
+    "All of the objects contained in $SearchBase and the OU object itself will have `"Protect Object From Accidental Deletion`" set." 
+$Unprotect = New-Object System.Management.Automation.Host.ChoiceDescription "&Unprotect", ` 
+    "All of the objects within $SearchBase and the OU object itself will have `"Protect Object From Accidental Deletion`" removed." 
+$Cancel = New-Object System.Management.Automation.Host.ChoiceDescription "&Cancel", ` 
+    "The script will exit without making changes." 
+$Options = [System.Management.Automation.Host.ChoiceDescription[]]($Protect, $Unprotect,$Cancel) 
+$Result = $host.ui.PromptForChoice($Title, $Message, $Options, 0)  
+ 
+# Remind the host the option they chose and set the appropriate variables to setup the changes. 
+Switch ($Result) 
+    { 
+        0 {"You chose to protect the OU and objects within $SearchBase ";$SearchProtected = $False;$SetProtected = $True} 
+        1 {"You chose to unprotect the OU and objects within $SearchBase ";$SearchProtected = $True;$SetProtected = $False} 
+        2 {"Script canceled.  No action was taken."} 
+    } 
+     
+# If cancel was not the choice made then proceed with toggling the feature on the OUs. 
+If ($Result -ne 2) { 
+    Write-Host "Searching for data matching your criteria ..." 
+    # Query AD for the OUs that match the choice and report the number of OUs affected. 
+    [array]$OUs = Get-ADobject -Filter * -SearchBase $SearchBase -Properties ProtectedFromAccidentalDeletion | Where {$_.ProtectedFromAccidentalDeletion -eq $SearchProtected} 
+    Write-Host "There are" $OUs.count "objects matching your criteria.  Please wait while the objects are updated ..." 
+    # Cycle through the array of objects to set the ProtectedFromAccidentalDeletion property. 
+    ForEach ($OU in $OUs) {Set-ADobject $OU.Distinguishedname -ProtectedFromAccidentalDeletion $SetProtected} 
+ 
+    Write-Host "`"Protect Object From Accidental Deletion`" setting has been changed." 
+}
