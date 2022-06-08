@@ -1,8 +1,4 @@
 
-# Protect AD OU's and Objects From Accidental Deletion - Liam Sullivan
-# Written:  18/06/2019    Last Updated:  18/06/2019 
-# Purpose:  Toggle the "Protect Object From Accidental Deletion" attribute on AD OU's and Objects within. 
- 
 # Function to check for and enable PS modules.
 Function Get-MyModule {  
     Param([string]$Name)  
