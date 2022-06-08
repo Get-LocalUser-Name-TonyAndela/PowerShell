@@ -1,0 +1,29 @@
+
+$Users = Import-Csv C:\Users\Administrator.ADATUM\Documents\ADUsers.csv
+
+# Specify target group where the users will be added to
+$Group = "CN=NewGroup11,DC=Adatum,DC=com" 
+
+foreach ($User in $Users) {
+    $UPN = $User.UserPrincipalName
+    $ADUser = Get-ADUser -Filter "UserPrincipalName -eq '$UPN'" | Select-Object SamAccountName
+
+    # User from CSV not in AD
+    if ($ADUser -eq $null) {
+         Write-Host "$UPN does not exist in AD" -ForegroundColor Red    
+    }
+    else {
+        # Retrieve AD user group membership
+        $ExistingGroups = Get-ADPrincipalGroupMembership $ADUser.SamAccountName | Select-Object Name
+
+        # User already member of group
+        if ($ExistingGroups.Name -eq $Group) {
+            Write-Host "$UPN already exists in $Group" -ForeGroundColor Yellow        
+        }
+        else {
+            # Add user to group
+            Add-ADGroupMember -Identity $Group -Members $ADUser.SamAccountName
+            Write-Host "Added $UPN to $Group" -ForeGroundColor Green        
+        }
+    }
+}
