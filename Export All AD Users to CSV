@@ -1,0 +1,13 @@
+
+Get-Aduser -Filter * -Properties * | 
+        select `
+        sn, 
+        DisplayName, 
+        Department, 
+        City, 
+        Mobilephone, 
+        UserPrincipalName, 
+        PasswordLastSet, 
+        primaryGroupID | 
+        
+        Export-Csv -Path C:\Users\Administrator.ADATUM\Documents\ADUsers.csv
