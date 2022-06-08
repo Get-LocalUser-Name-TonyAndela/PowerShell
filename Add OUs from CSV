@@ -1,0 +1,20 @@
+
+Import-Module ActiveDirectory
+
+$ADOU = Import-Csv C:\Users\Administrator.ADATUM\Documents\NewOUs.csv
+
+ForEach ($OU in $ADOU) {
+
+        $name = $ou.name
+        $path = $ou.path
+
+            New-ADOrganizationalUnit `
+            -Name $name `
+            -Path $path `
+
+          
+
+        Write-Host "The OU $name is added." -ForegroundColor Cyan
+    
+    
+    }
