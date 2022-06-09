@@ -1,0 +1,104 @@
+
+# https://pimylifeup.com/raspberry-pi-bitwarden/#bitwardendocker
+
+# Installed RaspPi Imager on HP Desktop
+# Installed Raspberry Pi OS Lite; 64-bit; Ver 11 (Bullseye)
+# Before every install, I checked for updates to the RPi
+    
+    sudo apt update
+    sudo apt upgrade
+
+# Install Docker on the Pi
+
+    curl -sSL https://get.docker.com | sh
+
+# add Docker to the docer group
+
+    sudo usermod -aG docker pi
+
+# logout and logon for chnages to take effect
+
+    logout
+
+# verify the docker group was added
+
+    groups
+
+# Test Docker install
+
+    docker run hello-world
+
+# Install Bitwarden using the Docker CLI
+# Pull the latest version of the server
+
+    docker pull vaultwarden/server:latest
+
+# Run the Docker image
+
+    sudo docker run -d --name bitwarden \
+        --restart=always \
+        -v /bw-data/:/data/ \
+        -p 127.0.0.1:8080:80 \
+        -p 127.0.0.1:3012:3012 \
+        vaultwarden/server:latest
+
+# This command launches the Bitwarden RS server, the defined the ports, port 3012 is the port Bitwarden's web sockets use to communicate
+# Set up an NGINX Proxy 
+# Check for updates if nessacarry
+# Remove Apache2 from the Pi
+
+    sudo apt remove apache2
+
+# Install NGINX
+
+    sudo apt install nginx
+
+# start the software
+
+    sudo systemctl start nginx
+
+# Test the NGINX web server is working, go to a browser and go to: http://10.0.0.33
+# Install PHP 7.4 to run with NGINX
+
+    sudo apt install php7.4-fpm php7.4-mbstring php7.4-mysql php7.4-curl php7.4-gd php7.4-curl php7.4-zip php7.4-xml -y
+
+# Modify the NGINX config to utilize PHP-FPM
+
+    sudo nano /etc/nginx/sites-enabled/default
+
+# Find 
+        index index.html index.htm;
+# replace with
+        index index.php index.html index.htm;
+# Find
+        #location ~ \.php$ {
+        #       include snippets/fastcgi-php.conf;
+        #
+        #       # With php5-cgi alone:
+        #       fastcgi_pass 127.0.0.1:9000;
+        #       # With php5-fpm:
+        #       fastcgi_pass unix:/var/run/php5-fpm.sock;
+        #}
+# replace with
+        location ~ \.php$ {
+               include snippets/fastcgi-php.conf;
+               fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
+        }
+# Save by typing ctrl x; then y then enter
+
+# Reload NGINX
+
+    sudo systemctl reload nginx
+## Running into the following error when running the above line
+            Job for nginx.service failed.
+            See "systemctl status nginx.service" and "journalctl -xe" for details.
+
+
+# Test the PHP setup by writing a index.php file in the /var/www/html directory
+
+    sudo nano /var/www/html/index.php
+# write the follow line of code in the file
+    <?php phpinfo(); ?>
+# crtl x; y; enter
+
+
